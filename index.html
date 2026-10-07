@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlowMetrics - Cosmetic Inventory Management</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        roseGold: {
+                            DEFAULT: '#b76e79',
+                            light: '#e0a9b2',
+                            dark: '#96525e',
+                            bg: '#fcf6f6'
+                        },
+                        blush: {
+                            DEFAULT: '#fdf2f2',
+                            border: '#f5d6d6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1a3ac;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b76e79;
+        }
+    </style>
+</head>
+<body class="h-full bg-roseGold-bg text-slate-700 antialiased">
+
+    <div class="min-h-full flex flex-col md:flex-row">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 bg-white border-r border-roseGold-light/30 flex flex-col justify-between shadow-sm z-10">
+            <div>
+                <!-- Brand Header -->
+                <div class="p-6 flex items-center space-x-3 border-b border-roseGold-light/20">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-roseGold to-roseGold-light flex items-center justify-center text-white shadow-md">
+                        <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-slate-800 text-lg tracking-wide">GlowMetrics</h1>
+                        <p class="text-xs text-roseGold font-medium">Cosmetic Inventory Pro</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="p-4 space-y-1.5">
+                    <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-blush text-roseGold font-semibold transition-all">
+                        <i class="fa-solid fa-chart-pie w-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#inventory-section" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-roseGold-bg hover:text-roseGold font-medium transition-all">
+                        <i class="fa-solid fa-boxes-stacked w-5"></i>
+                        <span>Batch Inventory</span>
+                    </a>
+                    <a href="#expiry-section" onclick="filterStatus('Expiring Soon')" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-roseGold-bg hover:text-roseGold font-medium transition-all">
+                        <i class="fa-solid fa-triangle-exclamation w-5"></i>
+                        <span>Expiry Alerts</span>
+                    </a>
+                    <a href="#" onclick="openModal()" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-roseGold-bg hover:text-roseGold font-medium transition-all">
+                        <i class="fa-solid fa-plus-circle w-5"></i>
+                        <span>Add New SKU</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- User Profile & Status -->
+            <div class="p-4 border-t border-roseGold-light/20 m-4 bg-blush/40 rounded-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-full bg-roseGold-light/40 flex items-center justify-center text-roseGold font-bold text-sm">
+                        AQ
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-semibold text-slate-800 truncate">Aura Quality Lab</p>
+                        <p class="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> GMP Certified
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            
+            <!-- Top Header -->
+            <header class="bg-white border-b border-roseGold-light/20 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 z-20">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Inventory & Batch Traceability</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Real-time stock monitoring, FEFO tracking, and compliance records</p>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <button onclick="openModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-roseGold to-roseGold-dark text-white font-medium text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Add New Product Batch
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content Container -->
+            <div class="p-6 space-y-6 max-w-7xl mx-auto w-full">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <!-- Total Products Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-roseGold-light/20 shadow-sm hover:shadow-md transition-all">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Products / SKUs</p>
+                                <h3 id="stat-total-products" class="text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+                            </div>
+                            <div class="w-11 h-11 rounded-xl bg-rose-50 text-roseGold flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-bottle-droplet"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-xs text-emerald-600 font-medium gap-1">
+                            <i class="fa-solid fa-arrow-trend-up"></i> <span>Active cosmetic lines</span>
+                        </div>
+                    </div>
+
+                    <!-- Expiring Soon Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-roseGold-light/20 shadow-sm hover:shadow-md transition-all">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Expiring Soon (&lt;60d)</p>
+                                <h3 id="stat-expiring" class="text-3xl font-extrabold text-amber-600 mt-2">0</h3>
+                            </div>
+                            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-xs text-amber-600 font-medium gap-1">
+                            <i class="fa-solid fa-triangle-exclamation"></i> <span>Requires FEFO clearance</span>
+                        </div>
+                    </div>
+
+                    <!-- Active Batches Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-roseGold-light/20 shadow-sm hover:shadow-md transition-all">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Batches</p>
+                                <h3 id="stat-batches" class="text-3xl font-extrabold text-slate-800 mt-2">0</h3>
+                            </div>
+                            <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-barcode"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-xs text-purple-600 font-medium gap-1">
+                            <i class="fa-solid fa-shield-check"></i> <span>100% Traceable Lots</span>
+                        </div>
+                    </div>
+
+                    <!-- Low Stock Alerts Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-roseGold-light/20 shadow-sm hover:shadow-md transition-all">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Low Stock Alerts</p>
+                                <h3 id="stat-lowstock" class="text-3xl font-extrabold text-rose-600 mt-2">0</h3>
+                            </div>
+                            <div class="w-11 h-11 rounded-xl bg-red-50 text-rose-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-xs text-rose-600 font-medium gap-1">
+                            <i class="fa-solid fa-cart-shopping"></i> <span>Reorder recommended</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="inventory-section" class="bg-white rounded-2xl border border-roseGold-light/20 shadow-sm overflow-hidden">
+                    <!-- Table Header & Controls -->
+                    <div class="p-5 border-b border-roseGold-light/20 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="flex items-center gap-3 w-full md:w-auto">
+                            <div class="relative w-full md:w-80">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                    <i class="fa-solid fa-search"></i>
+                                </span>
+                                <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search product name, SKU, or batch..." class="w-full pl-10 pr-4 py-2 bg-roseGold-bg/50 border border-roseGold-light/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-roseGold/50 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Status Filter Buttons -->
+                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+                            <button onclick="filterStatus('All')" id="btn-filter-All" class="filter-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-roseGold text-white transition-all shadow-sm">All Items</button>
+                            <button onclick="filterStatus('Optimal')" id="btn-filter-Optimal" class="filter-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-roseGold-bg text-slate-600 hover:bg-roseGold-light/20 transition-all">Optimal</button>
+                            <button onclick="filterStatus('Expiring Soon')" id="btn-filter-Expiring Soon" class="filter-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-roseGold-bg text-slate-600 hover:bg-roseGold-light/20 transition-all">Expiring Soon</button>
+                            <button onclick="filterStatus('Low Stock')" id="btn-filter-Low Stock" class="filter-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-roseGold-bg text-slate-600 hover:bg-roseGold-light/20 transition-all">Low Stock</button>
+                            <button onclick="filterStatus('Expired')" id="btn-filter-Expired" class="filter-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-roseGold-bg text-slate-600 hover:bg-roseGold-light/20 transition-all">Expired</button>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-roseGold-bg/60 text-slate-500 text-xs uppercase tracking-wider border-b border-roseGold-light/20">
+                                    <th class="py-3.5 px-6 font-semibold">Cosmetic Product</th>
+                                    <th class="py-3.5 px-4 font-semibold">SKU Code</th>
+                                    <th class="py-3.5 px-4 font-semibold">Batch Number</th>
+                                    <th class="py-3.5 px-4 font-semibold">Category</th>
+                                    <th class="py-3.5 px-4 font-semibold">Expiry Date</th>
+                                    <th class="py-3.5 px-4 font-semibold">Stock Level</th>
+                                    <th class="py-3.5 px-4 font-semibold">Status</th>
+                                    <th class="py-3.5 px-6 font-semibold text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody" class="divide-y divide-roseGold-light/15 text-sm">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State for Table -->
+                    <div id="emptyState" class="hidden p-12 text-center">
+                        <div class="w-16 h-16 bg-roseGold-bg rounded-full flex items-center justify-center mx-auto text-roseGold text-2xl mb-3">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-700">No cosmetic products found</h4>
+                        <p class="text-xs text-slate-400 mt-1">Try adjusting your search criteria or filter category.</p>
+                    </div>
+
+                    <!-- Table Footer Pagination Summary -->
+                    <div class="p-4 bg-roseGold-bg/30 border-t border-roseGold-light/20 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 gap-2">
+                        <span id="tableCountDisplay">Showing all items</span>
+                        <div class="flex items-center gap-1">
+                            <span class="text-roseGold font-medium"><i class="fa-solid fa-circle-info mr-1"></i> FEFO principle active:</span> First-expired items prioritized for dispatch.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="productModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-roseGold-light/30 transform scale-95 transition-transform duration-300" id="modalContainer">
+            <!-- Modal Header -->
+            <div class="px-6 py-5 bg-gradient-to-r from-roseGold-bg to-blush border-b border-roseGold-light/20 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-roseGold text-white flex items-center justify-center">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg">Add Cosmetic Batch</h3>
+                        <p class="text-xs text-roseGold">Register new formulation or incoming stock lot</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white text-slate-400 hover:text-slate-700 flex items-center justify-center shadow-sm border border-roseGold-light/20 transition-all">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form -->
+            <form id="addProductForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Product Name *</label>
+                        <input type="text" id="productName" required placeholder="e.g., Peptide Glow Serum" class="w-full px-3.5 py-2.5 bg-roseGold-bg/40 border border-roseGold-light/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-roseGold/50 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">SKU Code *</label>
+                        <input type="text" id="productSku" required placeholder="e.g., SER-GLW-30ML" class="w-full px-3.5 py-2.5 bg-roseGold-bg/40 border border-roseGold-light/30 rounded-xl text-sm uppercase focus:outline-none focus:ring-2 focus:ring-roseGold/50 transition-all">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Batch Number *</label>
+                        <input type="text" id="productBatch" required placeholder="e.g., BATCH-2026-99A" class="w-full px-3.5 py-2.5 bg-roseGold-bg/40 border border-roseGold-light/30 rounded-xl text-sm uppercase focus:outline-none focus:ring-2 focus:ring-roseGold/50 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Category *</label>
+                        <select id="productCategory" required class="w-full px-3.5 py-2.5 bg-roseGold-bg/40 border border-roseGold-light/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-roseGold/50 transition-all">
+                            <option value="Skincare">Skincare</option>
+                            <option value="Makeup">Makeup</option>
+                            <option value="Haircare">Haircare</option>
+                            <option value="Fragrance">Fragrance</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Initial Stock Level *</label>
+                        <input type="number" id="productStock" min="0" required placeholder="e.g., 450" class="w-full px-3.5 py-2.5 bg-roseGold-bg/40 border border-roseGold-light/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-roseGold/50 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Expiry Date *</label>
+                        <input type="date" id="productExpiry" required class="w-full px-3.5 py-2.5 bg-roseGold-bg/40 border border-roseGold-light/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-roseGold/50 transition-all">
+                    </div>
+                </div>
+
+                <!-- Form Feedback Message -->
+                <div id="formFeedback" class="hidden text-xs font-medium p-3 rounded-xl bg-red-50 text-red-600 border border-red-200"></div>
+
+                <!-- Modal Buttons -->
+                <div class="pt-4 flex items-center justify-end gap-3 border-t border-roseGold-light/20">
+                    <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl border border-roseGold-light/30 text-slate-600 font-medium text-sm hover:bg-roseGold-bg transition-all">Cancel</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-roseGold to-roseGold-dark text-white font-medium text-sm shadow-md hover:shadow-lg transition-all">Save & Register Batch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Notification Toast -->
+    <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 text-sm">
+            <div id="toastIcon" class="text-roseGold-light">
+                <i class="fa-solid fa-circle-check text-lg"></i>
+            </div>
+            <span id="toastMessage">Action completed successfully</span>
+        </div>
+    </div>
+
+    <script>
+        // Initial dataset representing cosmetic inventory items
+        let inventoryData = [
+            { id: 1, name: "Hydrating Facial Serum", sku: "SKU-HYD-001", batch: "BAT-2026-A1", category: "Skincare", expiry: "2026-11-15", stock: 120 },
+            { id: 2, name: "Matte Velvet Lipstick", sku: "SKU-LIP-042", batch: "BAT-2025-M9", category: "Makeup", expiry: "2026-05-10", stock: 35 },
+            { id: 3, name: "Vitamin C Brightening Cream", sku: "SKU-VIT-109", batch: "BAT-2026-C4", category: "Skincare", expiry: "2027-02-28", stock: 450 },
+            { id: 4, name: "Organic Rosewater Toner", sku: "SKU-TON-015", batch: "BAT-2026-R2", category: "Skincare", expiry: "2026-04-20", stock: 18 },
+            { id: 5, name: "Argan Oil Hair Mask", sku: "SKU-HAR-088", batch: "BAT-2025-H3", category: "Haircare", expiry: "2026-03-30", stock: 12 },
+            { id: 6, name: "Sandalwood Eau de Parfum", sku: "SKU-PER-003", batch: "BAT-2027-S1", category: "Fragrance", expiry: "2028-06-12", stock: 210 },
+            { id: 7, name: "Hyaluronic Acid Sheet Mask", sku: "SKU-MSK-221", batch: "BAT-2025-X7", category: "Skincare", expiry: "2026-05-01", stock: 5 }
+        ];
+
+        let currentFilterStatus = 'All';
+        let currentSearchQuery = '';
+
+        // Run on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderDashboard();
+        });
+
+        // Calculate item status based on expiry date and stock level
+        function computeStatus(expiryDateStr, stockLevel) {
+            const today = new Date();
+            const expiry = new Date(expiryDateStr);
+            const diffTime = expiry - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                return { label: "Expired", class: "bg-red-100 text-red-700 border border-red-200", icon: "fa-circle-xmark" };
+            } else if (diffDays <= 60) {
+                return { label: "Expiring Soon", class: "bg-amber-100 text-amber-800 border border-amber-200", icon: "fa-triangle-exclamation" };
+            } else if (stockLevel < 20) {
+                return { label: "Low Stock", class: "bg-rose-100 text-rose-700 border border-rose-200", icon: "fa-arrow-trend-down" };
+            } else {
+                return { label: "Optimal", class: "bg-emerald-100 text-emerald-800 border border-emerald-200", icon: "fa-circle-check" };
+            }
+        }
+
+        // Render metrics cards and table
+        function renderDashboard() {
+            // Compute metrics
+            const totalProducts = inventoryData.length;
+            const expiringSoonCount = inventoryData.filter(item => computeStatus(item.expiry, item.stock).label === "Expiring Soon" || computeStatus(item.expiry, item.stock).label === "Expired").length;
+            const lowStockCount = inventoryData.filter(item => item.stock < 20).length;
+            const activeBatchesCount = inventoryData.length;
+
+            document.getElementById('stat-total-products').textContent = totalProducts;
+            document.getElementById('stat-expiring').textContent = expiringSoonCount;
+            document.getElementById('stat-batches').textContent = activeBatchesCount;
+            document.getElementById('stat-lowstock').textContent = lowStockCount;
+
+            // Filter data
+            const filteredData = inventoryData.filter(item => {
+                const statusObj = computeStatus(item.expiry, item.stock);
+                const matchesStatus = currentFilterStatus === 'All' || statusObj.label === currentFilterStatus;
+                
+                const query = currentSearchQuery.toLowerCase();
+                const matchesSearch = item.name.toLowerCase().includes(query) ||
+                                      item.sku.toLowerCase().includes(query) ||
+                                      item.batch.toLowerCase().includes(query) ||
+                                      item.category.toLowerCase().includes(query);
+                
+                return matchesStatus && matchesSearch;
+            });
+
+            const tbody = document.getElementById('inventoryTableBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
+
+            if (filteredData.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                filteredData.forEach(item => {
+                    const statusObj = computeStatus(item.expiry, item.stock);
+                    const row = document.createElement('tr');
+                    row.className = "hover:bg-roseGold-bg/20 transition-all";
+                    row.innerHTML = `
+                        <td class="py-4 px-6 font-medium text-slate-800">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-roseGold-bg text-roseGold flex items-center justify-center font-bold text-xs">
+                                    ${item.category.charAt(0)}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-slate-800">${item.name}</p>
+                                    <p class="text-xs text-slate-400">Lot ID: #${item.id}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4 font-mono text-xs text-slate-600">${item.sku}</td>
+                        <td class="py-4 px-4 font-mono text-xs font-semibold text-roseGold">${item.batch}</td>
+                        <td class="py-4 px-4">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-roseGold-bg text-slate-600">${item.category}</span>
+                        </td>
+                        <td class="py-4 px-4 text-xs font-medium text-slate-600">${item.expiry}</td>
+                        <td class="py-4 px-4">
+                            <span class="font-semibold ${item.stock < 20 ? 'text-rose-600' : 'text-slate-700'}">${item.stock} units</span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusObj.class}">
+                                <i class="fa-solid ${statusObj.icon}"></i> ${statusObj.label}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6 text-right">
+                            <button onclick="adjustStock(${item.id})" title="Restock / Dispense" class="w-8 h-8 rounded-lg bg-roseGold-bg text-roseGold hover:bg-roseGold hover:text-white transition-all inline-flex items-center justify-center mr-1">
+                                <i class="fa-solid fa-plus-minus text-xs"></i>
+                            </button>
+                            <button onclick="deleteItem(${item.id})" title="Delete Item" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all inline-flex items-center justify-center">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            document.getElementById('tableCountDisplay').textContent = `Showing ${filteredData.length} of ${inventoryData.length} total entries`;
+        }
+
+        // Filter status tabs
+        function filterStatus(status) {
+            currentFilterStatus = status;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = "filter-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-roseGold-bg text-slate-600 hover:bg-roseGold-light/20 transition-all";
+            });
+            const activeBtn = document.getElementById(`btn-filter-${status}`);
+            if (activeBtn) {
+                activeBtn.className = "filter-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-roseGold text-white transition-all shadow-sm";
+            }
+            renderDashboard();
+        }
+
+        // Search input handler
+        function filterTable() {
+            currentSearchQuery = document.getElementById('searchInput').value;
+            renderDashboard();
+        }
+
+        // Modal Controls
+        function openModal() {
+            const modal = document.getElementById('productModal');
+            const container = document.getElementById('modalContainer');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                container.classList.remove('scale-95');
+                container.classList.add('scale-100');
+            }, 10);
+            
+            // Set default date to 1 year from now for convenience
+            const nextYear = new Date();
+            nextYear.setFullYear(nextYear.getFullYear() + 1);
+            document.getElementById('productExpiry').value = nextYear.toISOString().split('T')[0];
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('productModal');
+            const container = document.getElementById('modalContainer');
+            modal.classList.add('opacity-0');
+            container.classList.remove('scale-100');
+            container.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('addProductForm').reset();
+                document.getElementById('formFeedback').classList.add('hidden');
+            }, 300);
+        }
+
+        // Handle Add Form Submission
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('productName').value.trim();
+            const sku = document.getElementById('productSku').value.trim().toUpperCase();
+            const batch = document.getElementById('productBatch').value.trim().toUpperCase();
+            const category = document.getElementById('productCategory').value;
+            const stock = parseInt(document.getElementById('productStock').value);
+            const expiry = document.getElementById('productExpiry').value;
+
+            // Validation check
+            if (!name || !sku || !batch || isNaN(stock) || !expiry) {
+                showFeedback("Please fill in all required fields correctly.");
+                return;
+            }
+
+            const newItem = {
+                id: Date.now(),
+                name,
+                sku,
+                batch,
+                category,
+                expiry,
+                stock
+            };
+
+            inventoryData.unshift(newItem);
+            renderDashboard();
+            closeModal();
+            showToast(`Successfully registered batch ${batch} for ${name}!`);
+        }
+
+        function showFeedback(msg) {
+            const fb = document.getElementById('formFeedback');
+            fb.textContent = msg;
+            fb.classList.remove('hidden');
+        }
+
+        // Adjust Stock helper
+        function adjustStock(id) {
+            const item = inventoryData.find(i => i.id === id);
+            if (!item) return;
+
+            const adjustment = prompt(`Adjust stock units for "${item.name}" (Batch: ${item.batch}).\nEnter quantity to add (positive) or remove (negative):`, "50");
+            if (adjustment !== null) {
+                const val = parseInt(adjustment);
+                if (!isNaN(val)) {
+                    item.stock = Math.max(0, item.stock + val);
+                    renderDashboard();
+                    showToast(`Updated stock for ${item.name}. New level: ${item.stock} units.`);
+                } else {
+                    alert("Please enter a valid number.");
+                }
+            }
+        }
+
+        // Delete Item
+        function deleteItem(id) {
+            const item = inventoryData.find(i => i.id === id);
+            if (confirm(`Are you sure you want to remove batch "${item.batch}" of ${item.name}?`)) {
+                inventoryData = inventoryData.filter(i => i.id !== id);
+                renderDashboard();
+                showToast(`Removed product batch record.`);
+            }
+        }
+
+        // Toast notification system
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            const msgEl = document.getElementById('toastMessage');
+            msgEl.textContent = message;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
